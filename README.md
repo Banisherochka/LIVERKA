@@ -138,9 +138,8 @@ liver-ct-segmentation/
 ### Вариант 1: Запуск с Docker (Рекомендуется)
 
 ```bash
-# Клонировать репозиторий
-git clone <repository-url>
-cd liver-ct-segmentation
+
+docker build -t liver-segmentation-frontend .
 
 # Запустить все сервисы
 docker-compose up -d

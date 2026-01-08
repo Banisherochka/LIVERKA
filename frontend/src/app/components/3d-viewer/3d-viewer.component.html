@@ -76,9 +76,7 @@
           <mat-icon>opacity</mat-icon>
           Прозрачность
         </label>
-        <mat-slider min="0" max="1" step="0.1" [value]="opacity" (input)="onOpacityChange($event)">
-          <input matSliderThumb>
-        </mat-slider>
+        <input type="range" min="0" max="1" step="0.1" [value]="opacity" (input)="onOpacityChange($event)" class="opacity-slider">
         <span class="value">{{ (opacity * 100).toFixed(0) }}%</span>
       </div>
 

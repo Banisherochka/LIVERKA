@@ -1,0 +1,32 @@
+# Alternative backend Dockerfile with conda to avoid SSL issues
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    postgresql-client \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements
+COPY requirements.txt .
+
+# Install Python dependencies using conda to avoid SSL issues
+RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org --upgrade pip && \
+    pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org --timeout=300 --retries=10 -r requirements.txt || \
+    # Fallback: try without version constraints
+    pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org --timeout=300 --retries=10 \
+    fastapi uvicorn sqlalchemy alembic psycopg2-binary celery redis \
+    passlib[bcrypt] python-jose[cryptography] python-dotenv requests \
+    boto3 Pillow pydicom numpy pydantic websockets \
+    python-dateutil loguru pytest httpx numpy-stl scikit-image
+
+# Copy application code
+COPY . .
+
+# Expose port
+EXPOSE 8000
+
+# Run application
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -52,8 +52,8 @@ export class ThreeDViewerComponent implements OnInit, OnDestroy {
   opacity = 0.9;
   
   // History for undo/redo
-  private history: any[] = [];
-  private historyIndex = -1;
+  history: any[] = [];
+  historyIndex = -1;
 
   // UI state
   loading = false;
@@ -272,8 +272,9 @@ export class ThreeDViewerComponent implements OnInit, OnDestroy {
   /**
    * Change opacity
    */
-  onOpacityChange(event: any) {
-    this.opacity = event.value;
+  onOpacityChange(event: Event) {
+    const target = event.target as HTMLInputElement;
+    this.opacity = parseFloat(target.value);
     if (this.liverMesh) {
       (this.liverMesh.material as THREE.MeshPhongMaterial).opacity = this.opacity;
     }

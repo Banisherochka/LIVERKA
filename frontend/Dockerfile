@@ -6,13 +6,14 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --silent
+# Install all dependencies (including Angular CLI)
+RUN npm ci --silent && npm cache clean --force
 
 # Copy source code
 COPY . .
 
-# Build Angular app for production
+# Build Angular app for production with optimizations
+ENV NODE_ENV=production
 RUN npm run build -- --configuration production
 
 # Stage 2: Serve with Nginx

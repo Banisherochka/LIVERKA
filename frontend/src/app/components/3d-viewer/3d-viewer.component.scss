@@ -159,8 +159,48 @@
       }
     }
 
-    mat-slider {
+    .opacity-slider {
       width: 100%;
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+      cursor: pointer;
+      margin: 10px 0;
+      
+      &::-webkit-slider-track {
+        background: rgba(255, 255, 255, 0.2);
+        height: 6px;
+        border-radius: 3px;
+      }
+      
+      &::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        height: 20px;
+        width: 20px;
+        border-radius: 50%;
+        background: #4caf50;
+        cursor: pointer;
+        border: 2px solid white;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      }
+      
+      &::-moz-range-track {
+        background: rgba(255, 255, 255, 0.2);
+        height: 6px;
+        border-radius: 3px;
+        border: none;
+      }
+      
+      &::-moz-range-thumb {
+        height: 20px;
+        width: 20px;
+        border-radius: 50%;
+        background: #4caf50;
+        cursor: pointer;
+        border: 2px solid white;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      }
     }
 
     .value {

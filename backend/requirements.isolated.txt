@@ -1,0 +1,6 @@
+# Minimal working requirements for isolated networks
+fastapi
+uvicorn
+sqlalchemy
+psycopg2-binary
+python-multipart
