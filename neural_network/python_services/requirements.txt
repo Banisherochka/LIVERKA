@@ -1,0 +1,31 @@
+# Core deep learning framework
+torch>=2.0.0
+torchvision>=0.15.0
+
+# Medical imaging
+pydicom>=2.4.0
+SimpleITK>=2.3.0
+nibabel>=5.1.0
+
+# Scientific computing
+numpy>=1.24.0
+scipy>=1.11.0
+
+# Image processing
+opencv-python>=4.8.0
+Pillow>=10.0.0
+
+# Utilities
+tqdm>=4.66.0
+pyyaml>=6.0.0
+
+# Optional: 3D model export formats
+numpy-stl>=3.1.0  # For STL export
+plyfile>=0.7.4  # For PLY export
+
+# Optional: GPU acceleration
+# nvidia-ml-py3>=7.352.0
+
+# Optional: Advanced metrics
+# scikit-image>=0.21.0
+# surface-distance>=0.1

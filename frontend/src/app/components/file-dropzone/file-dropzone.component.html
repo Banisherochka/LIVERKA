@@ -1,0 +1,38 @@
+<div class="dropzone" [class.dragging]="isDragging">
+  <header>
+    <h3>{{ files.length }} {{ title }}</h3>
+    <p>Перетащите файлы сюда или используйте кнопку ниже</p>
+  </header>
+
+  <section class="file-list" *ngIf="files.length; else emptyState">
+    <article class="file-card" *ngFor="let file of files">
+      <div class="order">{{ file.order }}</div>
+      <div class="thumb">картинка</div>
+      <div class="meta">
+        <p class="name">{{ file.name }}</p>
+        <p class="info">
+          {{ formatSize(file.size) }} ·
+          <span [ngClass]="file.status">{{ file.status | uppercase }}</span>
+        </p>
+      </div>
+      <button class="remove" type="button" (click)="remove.emit(file.id)">×</button>
+    </article>
+  </section>
+
+  <ng-template #emptyState>
+    <p class="placeholder">Файлы пока не добавлены</p>
+  </ng-template>
+
+  <footer>
+    <input
+      type="file"
+      multiple
+      hidden
+      #fileInput
+      (change)="onFileInputChange($event)"
+    />
+    <ui-button variant="ghost" (click)="fileInput.click()">+ Загрузить файл</ui-button>
+    <ui-button variant="primary" size="lg" (click)="launch.emit()">Запуск</ui-button>
+  </footer>
+</div>
+

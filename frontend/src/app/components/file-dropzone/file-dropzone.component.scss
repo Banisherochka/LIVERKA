@@ -1,0 +1,147 @@
+$border-color: #707070;
+
+:host {
+  display: block;
+}
+
+.dropzone {
+  border: 2px dashed $border-color;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  position: relative;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.02);
+  transition: border-color 200ms ease, box-shadow 200ms ease;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at top, rgba(255, 255, 255, 0.1), transparent);
+    opacity: 0;
+    transition: opacity 250ms ease;
+    pointer-events: none;
+  }
+
+  &.dragging {
+    border-color: #ff8a1f;
+    box-shadow: 0 0 30px rgba(255, 138, 31, 0.25);
+
+    &::after {
+      opacity: 1;
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+  }
+}
+
+header {
+  margin-bottom: 1rem;
+
+  h3 {
+    margin: 0;
+  }
+
+  p {
+    margin: 0.25rem 0 0;
+    color: #b5b5b5;
+  }
+}
+
+.file-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.file-card {
+  border: 1px dotted rgba(255, 255, 255, 0.2);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  display: grid;
+  grid-template-columns: auto 70px 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.1);
+
+  .order {
+    font-size: 1.2rem;
+    font-weight: 600;
+  }
+
+  .thumb {
+    border: 1px dashed rgba(255, 255, 255, 0.3);
+    border-radius: 0.25rem;
+    text-align: center;
+    font-size: 0.75rem;
+    padding: 0.5rem;
+    text-transform: uppercase;
+  }
+
+  .meta {
+    .name {
+      margin: 0;
+      font-weight: 600;
+    }
+
+    .info {
+      margin: 0.25rem 0 0;
+      font-size: 0.85rem;
+      color: #b5b5b5;
+
+      span {
+        text-transform: capitalize;
+      }
+
+      .uploaded {
+        color: #2ad16f;
+      }
+
+      .error {
+        color: #ff6b6b;
+      }
+
+      .cancelled {
+        color: #ffae42;
+      }
+    }
+  }
+
+  .remove {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 1.25rem;
+    cursor: pointer;
+  }
+}
+
+.placeholder {
+  text-align: center;
+  color: #b5b5b5;
+  margin: 2rem 0;
+}
+
+footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+
+  ui-button:first-child {
+    flex: 1;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 0.3;
+  }
+}
+

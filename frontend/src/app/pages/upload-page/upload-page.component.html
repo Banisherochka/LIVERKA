@@ -1,0 +1,51 @@
+<div class="page">
+  <header class="breadcrumbs">Главная / Загрузка файлов</header>
+
+  <section class="hero">
+    <div class="hero__text">
+      <p class="eyebrow">логотип / продукт</p>
+      <h1>Сервис автоматической сегментации печени на КТ‑снимках</h1>
+      <p class="lead">
+        Загрузите серию КТ-снимков, получите алгоритмическую сегментацию печени
+        и изучите результаты в удобном 2D / 3D интерфейсе.
+      </p>
+      <div class="meta">
+        <div class="meta-line"></div>
+        <div class="meta-line short"></div>
+        <div class="meta-line long"></div>
+      </div>
+      <ui-button variant="primary" size="lg" class="hero__cta">начать</ui-button>
+    </div>
+    <div class="hero__image">картинка</div>
+  </section>
+
+  <section class="uploader">
+    <app-file-dropzone
+      title="Файлы"
+      [files]="files"
+      (selectFiles)="handleFilesSelected($event)"
+      (filesDropped)="handleFilesSelected($event)"
+      (remove)="handleRemove($event)"
+      (launch)="handleLaunch()"
+    />
+  </section>
+
+  <section class="how-it-works">
+    <h2>Как это работает:</h2>
+    <ol>
+      <li>
+        <span class="badge">1</span>
+        Загрузите КТ-снимки
+      </li>
+      <li>
+        <span class="badge">2</span>
+        Получите автоматическую сегментацию
+      </li>
+      <li>
+        <span class="badge">3</span>
+        Изучите результаты в 2D и 3D
+      </li>
+    </ol>
+  </section>
+</div>
+

@@ -1,0 +1,24 @@
+<div class="app-layout">
+  <header>
+    <mat-toolbar color="primary" class="main-toolbar">
+      <div class="logo">логотип</div>
+      <nav class="primary-nav">
+        <button mat-button disableRipple class="nav-item active">Сегментация печени</button>
+      </nav>
+      <span class="spacer"></span>
+      <button mat-button class="profile">Профиль</button>
+    </mat-toolbar>
+  </header>
+
+  <main class="content-shell">
+    <router-outlet />
+  </main>
+
+  <footer class="site-footer">
+    <button mat-button>Документация</button>
+    <button mat-button>О сервисе</button>
+    <button mat-button>Контакты</button>
+    <button mat-button>Поддержка</button>
+  </footer>
+</div>
+

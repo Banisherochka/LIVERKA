@@ -1,0 +1,92 @@
+@use '@angular/material' as mat;
+
+$bg: #161616;
+$panel-light: #2b2b2b;
+
+:host {
+  display: block;
+  min-height: 100vh;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  background: $bg;
+  color: #f5f5f5;
+}
+
+.app-layout {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem clamp(1rem, 4vw, 3rem) 3rem;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.main-toolbar {
+  border-radius: 0.5rem;
+  background: $panel-light;
+  padding-inline: 1.5rem;
+
+  .logo {
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .primary-nav {
+    margin-left: 2rem;
+
+    .nav-item {
+      color: #fff;
+      &.active {
+        //border-bottom: 2px solid mat.m2-get-color-from-palette($panel-light, 200);
+      }
+    }
+  }
+
+  .profile {
+    color: #fff;
+  }
+
+  .spacer {
+    flex: 1 1 auto;
+  }
+}
+
+.content-shell {
+  flex: 1 1 auto;
+}
+
+.site-footer {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: $panel-light;
+  border-radius: 0.75rem;
+
+  button {
+    color: #fff;
+    text-transform: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .main-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+
+    .primary-nav {
+      margin-left: 0;
+    }
+
+    .spacer {
+      display: none;
+    }
+
+    .profile {
+      align-self: flex-end;
+    }
+  }
+}
