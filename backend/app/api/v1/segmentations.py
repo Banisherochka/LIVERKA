@@ -16,7 +16,7 @@ router = APIRouter()
 
 
 @router.post("/segmentation/upload")
-async def upload_segmentation(
+def upload_segmentation(
     file: UploadFile = File(...),
     patient_id: Optional[str] = None,
     db: Session = Depends(get_database)
@@ -52,10 +52,10 @@ async def upload_segmentation(
         file_size = file.size
     else:
         # Read content to check size
-        content = await file.read()
+        content = file.read()
         file_size = len(content)
         # Reset file pointer
-        await file.seek(0)
+        file.seek(0)
     
     if not validate_file_size(file_size):
         app_logger.warning(f"SECURITY: File too large: {file_size} bytes")
@@ -100,7 +100,7 @@ async def upload_segmentation(
             "data": {
                 "task_id": task.id,
                 "ct_scan_id": ct_scan.id,
-                "status": task.status.value,
+                "status": str(task.status.value),
                 "message": "Segmentation task created successfully"
             }
         }
@@ -275,7 +275,7 @@ def _task_summary(task: SegmentationTask) -> dict:
         "id": task.id,
         "ct_scan_id": task.ct_scan_id,
         "status": task.status.value,
-        "created_at": task.created_at.isoformat(),
+        "created_at": task.created_at.isoformat() if task.created_at else None,
         "started_at": task.started_at.isoformat() if task.started_at else None,
         "completed_at": task.completed_at.isoformat() if task.completed_at else None,
         "inference_time_ms": task.inference_time_ms,
@@ -295,7 +295,7 @@ def _task_detail(task: SegmentationTask) -> dict:
             "slice_count": task.ct_scan.slice_count
         },
         "status": task.status.value,
-        "created_at": task.created_at.isoformat(),
+        "created_at": task.created_at.isoformat() if task.created_at else None,
         "started_at": task.started_at.isoformat() if task.started_at else None,
         "completed_at": task.completed_at.isoformat() if task.completed_at else None,
         "inference_time_ms": task.inference_time_ms,

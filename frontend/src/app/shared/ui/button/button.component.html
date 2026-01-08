@@ -1,6 +1,8 @@
 <button
+  mat-raised-button
   [attr.type]="type"
   [disabled]="disabled"
+  [color]="variant === 'primary' ? 'primary' : variant === 'secondary' ? 'accent' : 'basic'"
   class="ui-button"
   [ngClass]="classes"
 >

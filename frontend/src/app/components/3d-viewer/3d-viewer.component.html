@@ -1,0 +1,121 @@
+<div class="viewer-container">
+  <!-- Toolbar -->
+  <mat-toolbar class="viewer-toolbar" color="primary">
+    <div class="toolbar-title">
+      <mat-icon>view_in_ar</mat-icon>
+      <span>3D Визуализация печени</span>
+      <span class="spacer"></span>
+      <span class="task-id" *ngIf="taskId">#{{ taskId }}</span>
+    </div>
+
+    <div class="toolbar-actions">
+      <!-- View Controls -->
+      <button mat-icon-button matTooltip="Сбросить вид" (click)="resetView()">
+        <mat-icon>replay</mat-icon>
+      </button>
+
+      <button mat-icon-button matTooltip="Каркасный режим" (click)="toggleWireframe()"
+              [class.active]="showWireframe">
+        <mat-icon>grid_on</mat-icon>
+      </button>
+
+      <!-- Edit Controls -->
+      <button mat-icon-button matTooltip="Режим редактирования" (click)="toggleEditMode()"
+              [class.active]="editMode" [color]="editMode ? 'accent' : 'primary'">
+        <mat-icon>edit</mat-icon>
+      </button>
+
+      <button mat-icon-button matTooltip="Сгладить поверхность" (click)="smoothSurface()"
+              [disabled]="!editMode">
+        <mat-icon>auto_fix_high</mat-icon>
+      </button>
+
+      <!-- History Controls -->
+      <button mat-icon-button matTooltip="Отменить" (click)="undo()"
+              [disabled]="!canUndo()">
+        <mat-icon>undo</mat-icon>
+      </button>
+
+      <button mat-icon-button matTooltip="Повторить" (click)="redo()"
+              [disabled]="!canRedo()">
+        <mat-icon>redo</mat-icon>
+      </button>
+
+      <!-- Export Controls -->
+      <button mat-icon-button matTooltip="Скачать скриншот" (click)="downloadScreenshot()">
+        <mat-icon>photo_camera</mat-icon>
+      </button>
+
+      <button mat-icon-button matTooltip="Экспортировать модель" (click)="exportModel()">
+        <mat-icon>download</mat-icon>
+      </button>
+    </div>
+  </mat-toolbar>
+
+  <!-- 3D Renderer Container -->
+  <div class="renderer-wrapper">
+    <div #rendererContainer class="renderer-container"></div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" *ngIf="loading">
+      <mat-icon>3d_rotation</mat-icon>
+      <p>Построение 3D модели...</p>
+    </div>
+
+    <!-- Error Overlay -->
+    <div class="error-overlay" *ngIf="error">
+      <mat-icon>error_outline</mat-icon>
+      <p>{{ error }}</p>
+    </div>
+
+    <!-- Controls Panel -->
+    <div class="controls-panel">
+      <!-- Opacity Slider -->
+      <div class="control-group">
+        <label>
+          <mat-icon>opacity</mat-icon>
+          Прозрачность
+        </label>
+        <mat-slider min="0" max="1" step="0.1" [value]="opacity" (input)="onOpacityChange($event)">
+          <input matSliderThumb>
+        </mat-slider>
+        <span class="value">{{ (opacity * 100).toFixed(0) }}%</span>
+      </div>
+
+      <!-- Edit Mode Info -->
+      <div class="edit-info" *ngIf="editMode">
+        <mat-icon>info</mat-icon>
+        <div class="info-text">
+          <strong>Режим редактирования активен</strong>
+          <p>Используйте инструменты для коррекции модели</p>
+        </div>
+      </div>
+
+      <!-- Instructions -->
+      <div class="instructions">
+        <h4>Управление:</h4>
+        <ul>
+          <li><strong>ЛКМ</strong> - Вращение</li>
+          <li><strong>ПКМ</strong> - Перемещение</li>
+          <li><strong>Колесо</strong> - Масштабирование</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <div class="status-item">
+      <mat-icon>3d_rotation</mat-icon>
+      <span>WebGL активен</span>
+    </div>
+    <div class="status-item" *ngIf="editMode">
+      <mat-icon>edit</mat-icon>
+      <span>Редактирование</span>
+    </div>
+    <div class="status-item">
+      <mat-icon>history</mat-icon>
+      <span>История: {{ historyIndex + 1 }}/{{ history.length }}</span>
+    </div>
+  </div>
+</div>

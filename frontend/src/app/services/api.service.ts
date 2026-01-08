@@ -115,5 +115,13 @@ export class ApiService {
       { headers: this.getHeaders() }
     );
   }
+
+  // Get current user info
+  getCurrentUser(): Observable<any> {
+    return this.http.get(
+      `${this.apiUrl}/auth/me`,
+      { headers: this.getHeaders() }
+    );
+  }
 }
 

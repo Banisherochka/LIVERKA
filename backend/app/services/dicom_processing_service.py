@@ -59,7 +59,7 @@ class DicomProcessingService(ApplicationService):
         
         return {
             "patient_id": self._anonymize_patient_id(),
-            "study_date": self._extract_study_date(),
+            "study_date": self._extract_study_date().isoformat(),  # Convert to string
             "modality": self._detect_modality(filename),
             "slice_count": self._estimate_slice_count(),
             "series_description": "CT Abdomen with Contrast",
@@ -107,7 +107,9 @@ class DicomProcessingService(ApplicationService):
         # Save file
         try:
             if hasattr(self.file, 'read'):
-                content = self.file.read()
+                # Handle async UploadFile
+                import asyncio
+                content = asyncio.run(self.file.read())
                 if isinstance(content, str):
                     content = content.encode('utf-8')
                 with open(file_path, 'wb') as f:

@@ -3,8 +3,10 @@ Main FastAPI application
 """
 from contextlib import asynccontextmanager
 import json
+from datetime import datetime
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app.config import get_settings
 from app.api.router import api_router
@@ -17,6 +19,13 @@ from app.middleware.security import (
 from app.core.logging_config import app_logger
 
 settings = get_settings()
+
+
+def custom_json_encoder(obj):
+    """Custom JSON encoder for datetime objects"""
+    if isinstance(obj, datetime):
+        return obj.isoformat()
+    raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
 
 
 @asynccontextmanager
@@ -73,7 +82,8 @@ app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
     debug=settings.DEBUG,
-    lifespan=lifespan
+    lifespan=lifespan,
+    default_response_class=JSONResponse
 )
 
 # Security middleware (order matters!)

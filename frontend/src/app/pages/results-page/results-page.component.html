@@ -1,0 +1,153 @@
+<div class="page">
+    <header class="breadcrumbs">
+      <button mat-button routerLink="/" class="back-btn">
+        <mat-icon>arrow_back</mat-icon>
+        Назад к загрузке
+      </button>
+    </header>
+  
+    <div class="loading" *ngIf="loading">
+      <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
+      <p>Загрузка результатов сегментации...</p>
+    </div>
+  
+    <div class="error" *ngIf="error && !loading">
+      <mat-icon>error</mat-icon>
+      <h2>Ошибка</h2>
+      <p>{{ error }}</p>
+      <button mat-raised-button color="primary" (click)="goBack()">
+        Вернуться к загрузке
+      </button>
+    </div>
+  
+    <div class="results" *ngIf="result && !loading">
+      <!-- Tabs for switching between metrics and 3D view -->
+      <mat-tab-group [(selectedIndex)]="selectedTabIndex" animationDuration="300ms" class="results-tabs">
+        <!-- Tab 1: Metrics and Summary -->
+        <mat-tab label="Метрики и результаты">
+          <div class="tab-content">
+            <section class="summary">
+              <h1>Результаты сегментации печени</h1>
+              
+              <div class="status-card">
+                <mat-card>
+                  <mat-card-header>
+                    <mat-card-title>Статус обработки</mat-card-title>
+                  </mat-card-header>
+                  <mat-card-content>
+                    <mat-chip [color]="getQualityColor(result.metrics?.quality_grade)" selected>
+                      {{ result.status | uppercase }}
+                    </mat-chip>
+                    <p *ngIf="result.inference_time_ms">
+                      Время обработки: {{ result.inference_time_ms }} мс
+                    </p>
+                  </mat-card-content>
+                </mat-card>
+              </div>
+            </section>
+  
+            <section class="metrics" *ngIf="result.metrics">
+              <h2>Метрики качества</h2>
+              <div class="metrics-grid">
+                <mat-card class="metric-card">
+                  <mat-card-header>
+                    <mat-card-title>Dice Coefficient</mat-card-title>
+                  </mat-card-header>
+                  <mat-card-content>
+                    <div class="metric-value">{{ result.metrics.dice?.toFixed(3) || 'N/A' }}</div>
+                    <div class="metric-description">
+                      Коэффициент Сёренсена-Дайса<br>
+                      <small>Цель: ≥ 0.90</small>
+                    </div>
+                  </mat-card-content>
+                </mat-card>
+  
+                <mat-card class="metric-card">
+                  <mat-card-header>
+                    <mat-card-title>IoU Score</mat-card-title>
+                  </mat-card-header>
+                  <mat-card-content>
+                    <div class="metric-value">{{ result.metrics.iou?.toFixed(3) || 'N/A' }}</div>
+                    <div class="metric-description">
+                      Intersection over Union<br>
+                      <small>Цель: ≥ 0.90</small>
+                    </div>
+                  </mat-card-content>
+                </mat-card>
+  
+                <mat-card class="metric-card">
+                  <mat-card-header>
+                    <mat-card-title>Объем печени</mat-card-title>
+                  </mat-card-header>
+                  <mat-card-content>
+                    <div class="metric-value">{{ result.metrics.volume_ml?.toFixed(1) || 'N/A' }} мл</div>
+                    <div class="metric-description">
+                      Объем сегментированной печени
+                    </div>
+                  </mat-card-content>
+                </mat-card>
+  
+                <mat-card class="metric-card">
+                  <mat-card-header>
+                    <mat-card-title>Качество</mat-card-title>
+                  </mat-card-header>
+                  <mat-card-content>
+                    <div class="metric-value">
+                      <mat-chip [color]="getQualityColor(result.metrics.quality_grade)" selected>
+                        {{ result.metrics.quality_grade?.toUpperCase() || 'N/A' }}
+                      </mat-chip>
+                    </div>
+                    <div class="metric-description">
+                      <div *ngIf="result.metrics.meets_clinical_standards" class="clinical-badge">
+                        ✓ Соответствует клиническим стандартам
+                      </div>
+                    </div>
+                  </mat-card-content>
+                </mat-card>
+              </div>
+            </section>
+  
+            <section class="actions">
+              <h2>Действия</h2>
+              <div class="action-buttons">
+                <button mat-raised-button color="primary" (click)="downloadMask()">
+                  <mat-icon>download</mat-icon>
+                  Скачать маску сегментации
+                </button>
+                
+                <button mat-raised-button color="accent" (click)="switch3DView()">
+                  <mat-icon>view_in_ar</mat-icon>
+                  Просмотр в 3D
+                </button>
+  
+                <button mat-raised-button (click)="goBack()">
+                  <mat-icon>add</mat-icon>
+                  Загрузить новый файл
+                </button>
+              </div>
+            </section>
+  
+            <section class="summary-text" *ngIf="result.summary">
+              <h2>Сводка</h2>
+              <div class="summary-content">
+                {{ result.summary }}
+              </div>
+            </section>
+          </div>
+        </mat-tab>
+  
+        <!-- Tab 2: 3D Visualization -->
+        <mat-tab label="3D визуализация">
+          <div class="tab-content viewer-tab">
+            <div class="viewer-wrapper">
+              <app-3d-viewer 
+                [contourData]="result.contours" 
+                [taskId]="taskId">
+              </app-3d-viewer>
+            </div>
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+    </div>
+  </div>
+  

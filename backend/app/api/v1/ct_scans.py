@@ -91,8 +91,8 @@ def _ct_scan_detail(scan: CtScan) -> dict:
         "modality": scan.modality,
         "slice_count": scan.slice_count,
         "status": scan.status.value,
-        "created_at": scan.created_at.isoformat(),
-        "updated_at": scan.updated_at.isoformat()
+        "created_at": scan.created_at.isoformat() if scan.created_at else None,
+        "updated_at": scan.updated_at.isoformat() if scan.updated_at else None
     }
 
 

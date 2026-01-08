@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
+import { Router } from '@angular/router';
 import { FileDropzoneComponent } from '../../components/file-dropzone/file-dropzone.component';
 import { ButtonComponent } from '../../shared/ui/button/button.component';
 import { UploadFileView, UploadStatus } from '../../models/upload-file.model';
@@ -18,7 +19,7 @@ export class UploadPageComponent {
   uploading = false;
   uploadProgress: { [key: number]: number } = {};
 
-  constructor(private apiService: ApiService) {}
+  constructor(private apiService: ApiService, private router: Router) {}
 
   handleFilesSelected(fileList: FileList) {
     const items = Array.from(fileList).map((file) => ({
@@ -81,6 +82,8 @@ export class UploadPageComponent {
               if (task.status === 'completed') {
                 fileView.status = 'completed';
                 clearInterval(interval);
+                // Navigate to results page
+                this.router.navigate(['/results', taskId]);
               } else if (task.status === 'failed') {
                 fileView.status = 'error';
                 clearInterval(interval);

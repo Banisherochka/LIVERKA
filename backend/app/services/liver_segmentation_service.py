@@ -340,4 +340,3 @@ class LiverSegmentationService(ApplicationService):
             "sensitivity": round(0.92 + random.random() * 0.06, 4),
             "specificity": round(0.96 + random.random() * 0.03, 4)
         }
-

@@ -675,18 +675,20 @@ class AdvancedUNet3D(nn.Module):
 
 class LiverSegmentationPipeline:
     """
-    Полный пайплайн для сегментации печени
+    Полный пайплайн для сегментации печени с дообучением
     
     Включает:
     - Предобработку DICOM данных
     - Инференс модели
     - Постобработку результатов
     - Оценку качества сегментации
+    - Дообучение на данных заказчика из Екатеринбурга
     """
     
     def __init__(self, model_config: ModelConfig = None,
                  checkpoint_path: str = None,
-                 device: str = None):
+                 device: str = None,
+                 fine_tune_mode: bool = False):
         """
         Инициализация пайплайна
         
@@ -698,13 +700,26 @@ class LiverSegmentationPipeline:
         self.device = device or ('cuda' if torch.cuda.is_available() else 'cpu')
         logger.info(f"Using device: {self.device}")
         
-        self.config = model_config or ModelConfig()
+        self.config = model_config or ModelConfig(
+            # Оптимизация для КТ-снимков печени
+            init_features=64,  # Увеличено для лучшего выделения печени
+            depth=5,  # Больше глубина для детализации
+            conv_type=ConvType.RESIDUAL,
+            attention_type=AttentionType.ATTENTION_GATE,
+            use_deep_supervision=True,  # Глубокий надзор
+            dropout_rate=0.2
+        )
         self.model = AdvancedUNet3D(self.config).to(self.device)
+        self.fine_tune_mode = fine_tune_mode
         
         if checkpoint_path:
             self.load_checkpoint(checkpoint_path)
         
-        self.model.eval()
+        if not fine_tune_mode:
+            self.model.eval()
+        else:
+            self.model.train()
+            logger.info("Model set to fine-tuning mode")
         
         # Метрики
         self.metrics_history = {
@@ -969,6 +984,105 @@ def create_pretrained_model(model_name: str = 'liver_unet_v1',
     checkpoint_path = f'models/{model_name}.pth'
     
     return LiverSegmentationPipeline(config, checkpoint_path, device)
+
+
+def fine_tune_on_yekaterinburg_data(model_path: str = None,
+                                   data_dir: str = "Anon_Liver",
+                                   output_dir: str = "models/fine_tuned",
+                                   epochs: int = 50,
+                                   learning_rate: float = 1e-4):
+    """
+    Дообучение модели на данных из клиники Екатеринбурга
+    
+    Args:
+        model_path: Путь к предобученной модели
+        data_dir: Директория с КТ-снимками Anon_Liver
+        output_dir: Директория для сохранения дообученной модели
+        epochs: Количество эпох дообучения
+        learning_rate: Скорость обучения
+    """
+    import os
+    from pathlib import Path
+    
+    logger.info("=" * 60)
+    logger.info("Дообучение модели на данных Екатеринбург")
+    logger.info("=" * 60)
+    
+    # Создаем директорию для моделей
+    output_path = Path(output_dir)
+    output_path.mkdir(parents=True, exist_ok=True)
+    
+    # Конфигурация оптимизированная для печени
+    config = ModelConfig(
+        in_channels=1,
+        out_channels=1,
+        init_features=64,
+        depth=5,
+        conv_type=ConvType.RESIDUAL,
+        attention_type=AttentionType.ATTENTION_GATE,
+        use_deep_supervision=True,
+        dropout_rate=0.2
+    )
+    
+    # Создаем пайплайн в режиме дообучения
+    pipeline = LiverSegmentationPipeline(
+        model_config=config,
+        checkpoint_path=model_path,
+        fine_tune_mode=True
+    )
+    
+    # Оптимизатор для дообучения
+    optimizer = torch.optim.AdamW(
+        pipeline.model.parameters(),
+        lr=learning_rate,
+        weight_decay=1e-5
+    )
+    
+    # Scheduler для динамической скорости обучения
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer, mode='min', factor=0.5, patience=5, verbose=True
+    )
+    
+    # Функция потерь: комбинированная Dice + BCE
+    def combined_loss(pred, target):
+        # Dice loss
+        smooth = 1e-7
+        pred_flat = pred.view(-1)
+        target_flat = target.view(-1)
+        intersection = (pred_flat * target_flat).sum()
+        dice_loss = 1 - (2. * intersection + smooth) / (pred_flat.sum() + target_flat.sum() + smooth)
+        
+        # BCE loss
+        bce_loss = nn.BCELoss()(pred, target)
+        
+        # Комбинированная потеря
+        return 0.5 * dice_loss + 0.5 * bce_loss
+    
+    logger.info(f"Модель готова к дообучению: {pipeline.model.get_num_parameters():,} параметров")
+    logger.info(f"Директория с данными: {data_dir}")
+    logger.info(f"Эпохи: {epochs}, Learning rate: {learning_rate}")
+    
+    # Сохраняем конфигурацию
+    config_path = output_path / "config.json"
+    import json
+    with open(config_path, 'w') as f:
+        json.dump({
+            'model_config': config.__dict__,
+            'epochs': epochs,
+            'learning_rate': learning_rate,
+            'data_dir': data_dir,
+            'optimizer': 'AdamW',
+            'loss_function': 'Combined Dice + BCE'
+        }, f, indent=2)
+    
+    logger.info(f"Конфигурация сохранена: {config_path}")
+    logger.info("\n✅ Модель готова к дообучению на реальных данных пациентов")
+    logger.info("Для дообучения необходимо:")
+    logger.info("  1. Загрузить КТ-снимки в директорию Anon_Liver/")
+    logger.info("  2. Подготовить ground truth маски (если доступны)")
+    logger.info("  3. Запустить процесс обучения")
+    
+    return pipeline, optimizer, scheduler, combined_loss
 
 
 def test_model_performance():
