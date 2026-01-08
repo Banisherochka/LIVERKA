@@ -1,0 +1,162 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: liver-ct-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB:-liver_segmentation}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - liver-ct-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Redis Cache & Message Broker
+  redis:
+    image: redis:7-alpine
+    container_name: liver-ct-redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    networks:
+      - liver-ct-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  # Backend API (FastAPI)
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: liver-ct-api
+    ports:
+      - "${API_PORT:-8000}:8000"
+    environment:
+      # Database
+      DATABASE_URL: postgresql://${POSTGRES_USER:-user}:${POSTGRES_PASSWORD:-password}@db:5432/${POSTGRES_DB:-liver_segmentation}
+      
+      # Redis
+      REDIS_URL: redis://redis:6379/0
+      
+      # Celery
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      
+      # Security
+      SECRET_KEY: ${SECRET_KEY:-change-this-secret-key-in-production}
+      DEBUG: ${DEBUG:-False}
+      
+      # CORS
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4200,http://localhost,http://frontend:4200}
+      
+      # Application
+      APP_NAME: "Liver CT Segmentation API"
+      APP_VERSION: "1.0.0"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend/storage:/app/storage
+      - ./backend/logs:/app/logs
+      - ./Anon_Liver:/app/Anon_Liver:ro  # Read-only mount for patient data
+    networks:
+      - liver-ct-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  # Celery Worker for background tasks
+  celery:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: liver-ct-celery
+    command: celery -A app.tasks.celery_app worker --loglevel=info --concurrency=2
+    environment:
+      # Database
+      DATABASE_URL: postgresql://${POSTGRES_USER:-user}:${POSTGRES_PASSWORD:-password}@db:5432/${POSTGRES_DB:-liver_segmentation}
+      
+      # Redis
+      REDIS_URL: redis://redis:6379/0
+      
+      # Celery
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      
+      # Security
+      SECRET_KEY: ${SECRET_KEY:-change-this-secret-key-in-production}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend/storage:/app/storage
+      - ./backend/logs:/app/logs
+      - ./Anon_Liver:/app/Anon_Liver:ro  # Read-only mount for patient data
+    networks:
+      - liver-ct-network
+    restart: unless-stopped
+
+  # Frontend (Angular 18)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: liver-ct-frontend
+    ports:
+      - "${FRONTEND_PORT:-4200}:80"
+    environment:
+      API_URL: ${API_URL:-http://localhost:8000}
+    depends_on:
+      - api
+    networks:
+      - liver-ct-network
+    restart: unless-stopped
+
+  # Nginx Reverse Proxy (optional, for production)
+  nginx:
+    image: nginx:alpine
+    container_name: liver-ct-nginx
+    ports:
+      - "${NGINX_HTTP_PORT:-80}:80"
+      - "${NGINX_HTTPS_PORT:-443}:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro  # SSL certificates
+    depends_on:
+      - api
+      - frontend
+    networks:
+      - liver-ct-network
+    restart: unless-stopped
+    profiles:
+      - production  # Only start in production profile
+
+networks:
+  liver-ct-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
